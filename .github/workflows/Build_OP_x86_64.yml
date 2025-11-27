@@ -96,20 +96,23 @@ jobs:
         name: OpenWrt
         path: openwrt/bin
 
-    - name: Delete workflow runs
-      uses: GitRML/delete-workflow-runs@main
+    - name: Upload Firmware To Release(发布固件)
+      if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
+      uses: ncipollo/release-action@v1
       with:
-        retain_days: 1
-        keep_minimum_runs: 3
-        
-    - name: 上传日志
-      if: success() || failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: openwrt-build-logs
-        path: |
-            openwrt/build_dir/​**​/*.log
-            openwrt/logs/*
-            openwrt/tmp/*.log
-#            retention-days: 3  # 可选，设置日志保留天数
-
+        name: R${{ env.DATE }} for ${{ env.FIRMWARE_TAG }}
+        allowUpdates: true
+        tag: ${{ env.FIRMWARE_TAG }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: ${{ env.FIRMWARE_PATH }}/*
+        body: |
+          ### 📒 固件信息
+          - 这是基于官方openwrt-24.10源码编译的固件
+          - 💻 这是 X86 平台使用的 OpenWrt 固件
+          - ⚽ 固件源码: ${{ env.REPO_URL }}
+          - 💝 源码分支: ${{ env.REPO_BRANCH }}
+          - 🌐 默认地址: 192.168.23.1
+          - 🔑 默认密码: 无
+          ### 🧊 固件版本
+          - 固件编译前最后一次➦[主源码](${{ env.REPO_URL }})更新记录
+          - ${{ env.VERSION_INFO }}
